@@ -1,0 +1,436 @@
+<title>入札アンテナ いわき</title>
+<meta name="description" content="株式会社箱建エンジニアリング向け 入札情報の自動収集・選別サービスの画面（いわき市の実データ版）">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --ground:#f3f5f2;--surface:#ffffff;--surface-2:#e9eee9;
+  --ink:#1c2a30;--ink-2:#4b5b61;--ink-3:#7a888c;--line:#d5ddd8;
+  --accent:#0f6b63;--accent-soft:#dcefeb;
+  --warn:#b8660b;--warn-soft:#fbecd6;--bad:#a23a32;--bad-soft:#f6e0dd;--good:#2e7d4a;--good-soft:#dff0e3;
+  --shadow:0 1px 2px rgba(20,40,40,.06),0 4px 16px rgba(20,40,40,.06);
+  --f-body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-head:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#121a1c;--surface:#1a2427;--surface-2:#223034;
+    --ink:#e4ecea;--ink-2:#aebcbb;--ink-3:#80908f;--line:#2e3d41;
+    --accent:#4fbfb2;--accent-soft:#173b38;
+    --warn:#e3a14f;--warn-soft:#3a2c17;--bad:#e27c72;--bad-soft:#3b2220;--good:#6cc38a;--good-soft:#1c3625;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#121a1c;--surface:#1a2427;--surface-2:#223034;
+  --ink:#e4ecea;--ink-2:#aebcbb;--ink-3:#80908f;--line:#2e3d41;
+  --accent:#4fbfb2;--accent-soft:#173b38;
+  --warn:#e3a14f;--warn-soft:#3a2c17;--bad:#e27c72;--bad-soft:#3b2220;--good:#6cc38a;--good-soft:#1c3625;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.6;padding-inline:16px;padding-block:0 40px}
+.wrap{max-width:1200px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--ground);padding-block:14px 0;border-bottom:1px solid var(--line)}
+.brand{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;justify-content:space-between}
+.brand h1{font-size:20px;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.brand h1 svg{width:22px;height:22px;color:var(--accent)}
+.brand .who{color:var(--ink-2);font-size:13px}
+.flag{display:inline-block;font-size:11px;letter-spacing:.06em;padding:1px 8px;border-radius:3px;background:var(--accent-soft);color:var(--accent);font-weight:700}
+.tabs{display:flex;gap:4px;margin-top:10px;overflow-x:auto}
+.tab{border:0;background:none;color:var(--ink-2);padding:8px 14px;border-bottom:3px solid transparent;white-space:nowrap;font-weight:700}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.updated{color:var(--ink-3);font-size:12px;margin:18px 0 8px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.kpi .label{font-size:12px;color:var(--ink-2);letter-spacing:.04em}
+.kpi .value{font-size:26px;line-height:1.2;margin-top:2px}
+.kpi .value small{font-size:13px;color:var(--ink-3);margin-left:4px;font-family:var(--f-body)}
+.kpi .sub{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.kpi.hl{border-color:var(--accent);background:var(--accent-soft)}
+.kpi.warn{border-color:var(--warn);background:var(--warn-soft)}
+@media (max-width:720px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 10px;align-items:center}
+.filters .lbl{font-size:12px;color:var(--ink-3);margin-right:4px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:3px 12px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+
+.split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px;color:inherit}
+.row:hover{border-color:var(--ink-3)}
+.row[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.row.dim{opacity:.62}
+.row.skip{opacity:.4}
+.score{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-num);font-size:17px}
+.row .title{font-weight:700;font-size:14.5px;line-height:1.45}
+.row .meta{font-size:12px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px}
+.row .right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px;white-space:nowrap}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:3px;white-space:nowrap}
+.pill.ok{background:var(--good-soft);color:var(--good)}
+.pill.ng{background:var(--bad-soft);color:var(--bad)}
+.pill.due{background:var(--warn-soft);color:var(--warn)}
+.pill.mark{background:var(--accent-soft);color:var(--accent)}
+.pill.gray{background:var(--surface-2);color:var(--ink-2)}
+@media (max-width:520px){.row{grid-template-columns:44px minmax(0,1fr)}.row .right{grid-column:2;flex-direction:row;flex-wrap:wrap;align-items:center}.score{width:44px;height:44px;font-size:15px}}
+
+.detail{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;position:sticky;top:120px;box-shadow:var(--shadow);max-height:calc(100vh - 140px);overflow:auto}
+@media (max-width:900px){.detail{position:static;max-height:none}}
+.detail .issuer{font-size:12px;color:var(--ink-2)}
+.detail h2{font-size:18px;margin:2px 0 10px;line-height:1.45}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:0}
+.facts dt{color:var(--ink-3);white-space:nowrap}
+.facts dd{margin:0}
+.sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.sec h3{font-size:13px;letter-spacing:.06em;color:var(--ink-2);margin-bottom:8px}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:5px;font-size:13px}
+.checks li{display:grid;grid-template-columns:18px 7em 1fr;gap:6px;align-items:baseline}
+.checks .ic{font-weight:700}
+.checks .ok .ic{color:var(--good)}
+.checks .ng .ic{color:var(--bad)}
+.checks .na .ic{color:var(--ink-3)}
+.checks .note{color:var(--ink-2)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--surface-2);border-radius:5px;padding:8px 10px}
+.stat .l{font-size:11px;color:var(--ink-2)}
+.stat .v{font-size:18px}
+.ai{background:var(--accent-soft);border-radius:6px;padding:10px 12px;font-size:13px;line-height:1.7}
+.hint{font-size:12px;color:var(--ink-3);margin-top:6px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 16px;border-radius:5px;font-weight:700}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn:disabled{opacity:.5;cursor:default}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:8px 18px;border-radius:5px;font-size:13px;z-index:10}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;margin-top:18px}
+.panel h2{font-size:16px;margin-bottom:4px}
+.panel .sub{color:var(--ink-2);font-size:12.5px;margin:0 0 12px;max-width:80ch}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+.facts3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+@media (max-width:820px){.facts3{grid-template-columns:1fr}}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.fact .big{font-family:var(--f-num);font-size:30px;line-height:1.1;color:var(--accent)}
+.fact p{margin:6px 0 0;font-size:13px;color:var(--ink-2)}
+.scroll{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:12.5px}
+table.t th,table.t td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{color:var(--ink-3);font-weight:400;white-space:nowrap}
+table.t td.n{text-align:right;font-family:var(--f-num);white-space:nowrap}
+table.t tr.me td{background:var(--accent-soft)}
+.bars{display:grid;gap:8px}
+.barrow{display:grid;grid-template-columns:8.5em minmax(0,1fr) 3.5em 4.5em;gap:10px;align-items:center;font-size:12.5px}
+.bar{height:12px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.barrow.me .lab{font-weight:700;color:var(--accent)}
+.barrow .n{font-family:var(--f-num);text-align:right}
+.barrow .m{font-family:var(--f-num);text-align:right;color:var(--ink-3)}
+
+.notify{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:28px;align-items:start;margin-top:18px}
+@media (max-width:760px){.notify{grid-template-columns:1fr}}
+.phone{background:#7494a8;border-radius:26px;padding:12px;border:6px solid #1f2a30;max-width:340px;width:100%;margin:0 auto}
+.phone .bar-top{color:#fff;font-size:12px;text-align:center;padding:4px 0 10px;font-weight:700}
+.msg{background:#fff;color:#1c2a30;border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6;margin-bottom:8px}
+.msg .t{font-weight:700;margin-bottom:4px}
+.msg .it{border-top:1px solid #e3e8e6;padding-top:6px;margin-top:6px}
+.msg .sc{font-family:var(--f-num);color:#0f6b63;font-weight:700}
+.msg .link{color:#0f6b63;text-decoration:underline}
+.explain ol{margin:8px 0 0;padding-left:1.3em;display:grid;gap:8px;max-width:60ch}
+
+.form{display:grid;gap:18px;max-width:760px}
+.field .fl,.field label.fl{display:block;font-weight:700;font-size:13px;margin-bottom:6px}
+.field .hint{margin-top:4px}
+.checks-grid{display:flex;flex-wrap:wrap;gap:6px 14px}
+.checks-grid label{display:flex;gap:5px;align-items:center}
+select,input[type=text]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:6px 10px;max-width:100%}
+.inline{display:flex;flex-wrap:wrap;gap:10px}
+.foot{margin-top:28px;font-size:12px;color:var(--ink-3);max-width:90ch;line-height:1.8}
+.foot b{color:var(--ink-2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20v-8"/><path d="M8.5 8.5a5 5 0 0 1 7 0"/><path d="M5.6 5.6a9 9 0 0 1 12.8 0"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>
+        入札アンテナ いわき
+      </h1>
+      <div class="who">株式会社箱建エンジニアリング 様 ／ <span class="flag">いわき市の実データ（2026年9月25日取得）</span></div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="画面切り替え">
+      <button class="tab" role="tab" id="tab-today" aria-selected="true" data-view="today">今日の案件</button>
+      <button class="tab" role="tab" id="tab-analysis" aria-selected="false" data-view="analysis">入札結果の分析</button>
+      <button class="tab" role="tab" id="tab-notify" aria-selected="false" data-view="notify">通知イメージ</button>
+      <button class="tab" role="tab" id="tab-settings" aria-selected="false" data-view="settings">自社の条件</button>
+    </nav>
+  </header>
+
+  <main id="view-today">
+    <p class="updated">2026年9月25日（金）取得 ／ 収集元：いわき市 入札情報サービス（市・水道局の建設工事、令和8年度の公告 57件）</p>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="filters" role="group" aria-label="絞り込み">
+      <span class="lbl">表示</span>
+      <button class="chip" aria-pressed="true" data-f="mine">箱建に関係ある案件</button>
+      <button class="chip" aria-pressed="false" data-f="all">すべて（57件）</button>
+      <span class="lbl" style="margin-left:10px">並び順</span>
+      <button class="chip" aria-pressed="true" data-s="score">狙い目度</button>
+      <button class="chip" aria-pressed="false" data-s="date">開札日が近い順</button>
+      <span class="lbl" style="margin-left:auto">丸の数字＝狙い目度（試算・0〜100）</span>
+    </div>
+
+    <div class="split">
+      <div class="list" id="list"></div>
+      <aside class="detail" id="detail" aria-live="polite"></aside>
+    </div>
+  </main>
+
+  <section id="view-analysis" hidden>
+    <div class="facts3">
+      <div class="fact"><div class="big">1<span style="font-size:16px"> / 10件</span></div><p>過去1年で箱建の名前が載った入札10件のうち、実際に入札したのは1件。残り9件は辞退でした。</p></div>
+      <div class="fact"><div class="big">77%</div><p>一般競争入札147件のうち、最低制限価格から0.5%以内の金額で決まった割合。一般競争は「最低制限価格をどれだけ正確に読めるか」の勝負です。</p></div>
+      <div class="fact"><div class="big">43%</div><p>小名浜支所の発注35件のうち、落札率が95%以上だった割合。建設事業課（58件）では3%でした。</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>箱建の過去1年の入札記録</h2>
+      <p class="sub">市が公開している「入札参加者及び入札結果一覧表」から、箱建の名前がある10件を抜き出し、1件ずつ目で確認しました。落札率＝契約予定金額÷予定価格。</p>
+      <div class="scroll"><table class="t" id="history"></table></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h2>発注課ごとの「落札率95%以上」の割合</h2>
+        <p class="sub">令和7年9月〜令和8年9月に公表された工事の入札結果407件から集計。右の数字は件数と平均落札率。</p>
+        <div class="bars" id="bars"></div>
+      </div>
+      <div class="panel">
+        <h2>箱建と一緒に指名された会社</h2>
+        <p class="sub">小名浜支所の指名競争入札で、箱建が指名された7件の顔ぶれ（目視で確認）。</p>
+        <div class="scroll"><table class="t" id="rivals"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-notify" hidden>
+    <div class="notify">
+      <div class="phone" aria-label="スマートフォン通知の見本">
+        <div class="bar-top">入札アンテナ</div>
+        <div class="msg">
+          <div class="t">おはようございます。9/25（金）の注目案件です</div>
+          <div class="it"><span class="sc">85</span>　永崎保育所給水設備改修工事（管）<br>前回は指名9社が全社辞退。今回は再公告／開札 10/19</div>
+          <div class="it"><span class="sc">73</span>　本谷川河川改良工事（土木）<br>小名浜支所の指名案件／開札 10/19</div>
+          <div class="it"><span class="sc">73</span>　紅葉川河川改良工事（土木）<br>小名浜支所の指名案件／開札 10/19</div>
+          <div class="it"><span class="link">一覧を開く</span></div>
+        </div>
+        <div class="msg">
+          <div class="t">参加できる一般競争入札が出ました</div>
+          水道局「小名浜配水管（第267-236号）改良工事」<br>水道施設 A又はB・小名浜地区に本店 → <b>箱建は参加できます</b>。<br>参加申請の期限を確認してください。
+        </div>
+      </div>
+      <div class="explain">
+        <h2 style="font-size:17px">毎朝7時、社長のスマホに届く</h2>
+        <ol>
+          <li>夜のうちに、いわき市の入札情報サービスから新しい公告を集めます。</li>
+          <li>公告文のPDFから等級・地域の条件を読み取り、箱建の格付け（土木C・管C・舗装C・水道施設B）と照らし合わせます。</li>
+          <li>指名競争入札は、過去に指名された発注課かどうかを見て「指名されそうな案件」を知らせます。</li>
+          <li>過去の入札結果から、その発注課の落札率や競争の厳しさを添えます。</li>
+        </ol>
+        <p class="foot" style="margin-top:14px">下の通知は、9月1日の時点でこの仕組みが動いていたら届いていた内容の再現です。水道局の配水管工事5件は、箱建に参加資格がありましたが、参加申請の期限が過ぎています。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-settings" hidden>
+    <div class="panel">
+      <h2>自社の条件</h2>
+      <p class="sub">令和8年度 いわき市入札参加有資格者名簿（令和8年7月31日版）の登録内容を入れています。</p>
+      <form class="form" id="settings-form">
+        <div class="field">
+          <span class="fl">登録している工事の種類（名簿より）</span>
+          <div class="checks-grid" id="trades"></div>
+        </div>
+        <div class="field">
+          <span class="fl">いわき市の等級（名簿より）</span>
+          <div class="inline">
+            <label for="g-doboku">土木一式 <select id="g-doboku"><option>A</option><option>B</option><option selected>C</option></select></label>
+            <label for="g-kan">管 <select id="g-kan"><option>A</option><option>B</option><option selected>C</option></select></label>
+            <label for="g-hoso">舗装 <select id="g-hoso"><option>A</option><option>B</option><option selected>C</option></select></label>
+            <label for="g-sui">水道施設 <select id="g-sui"><option>A</option><option selected>B</option><option>C</option></select></label>
+          </div>
+        </div>
+        <div class="field">
+          <label class="fl" for="p-score">経審の総合評定値（P点）</label>
+          <input type="text" id="p-score" value="" placeholder="未入力（最新の通知書の値を入れてください）">
+          <div class="hint">今回の公告では、箱建が参加できる等級の案件はすべて「要件なし」でした。</div>
+        </div>
+        <div class="field">
+          <label class="fl" for="hq">本店所在地と地区</label>
+          <input type="text" id="hq" value="いわき市鹿島町走熊字坪下14（小名浜地区として判定）" style="width:100%">
+          <div class="hint">鹿島町は小名浜地区として扱っています。水道局の地域要件で使うため、市に確認しておくと確実です。</div>
+        </div>
+        <div class="field">
+          <label class="fl" for="src">収集する発注者</label>
+          <input type="text" id="src" value="いわき市（本庁・支所）、いわき市水道局" style="width:100%">
+          <div class="hint">福島県・東北地方整備局は次の段階で追加する想定です。</div>
+        </div>
+        <div class="field">
+          <label class="fl" for="ch">通知の送り先</label>
+          <select id="ch"><option>LINE（社長・積算担当）</option><option>メール</option><option>両方</option></select>
+        </div>
+        <div><button class="btn primary" type="submit">条件を保存</button></div>
+      </form>
+    </div>
+  </section>
+
+  <p class="foot">
+    <b>データについて：</b>公告の一覧・詳細・公告文PDFは、いわき市「入札情報サービス」から2026年9月25日に取得しました。過去の入札結果は、いわき市ホームページの「建設工事等の入札結果公表」（令和7年9月〜令和8年9月公表分、PDF 96ファイル・506ページ）を文字認識（OCR）で読み取ったものです。予定価格・契約金額は読み取り値の整合チェックを通った407件を使い、箱建に関する行はすべて目で確認しました。入札した社数など一部の数字はOCRによる概数です。<br>
+    <b>狙い目度について：</b>参加資格・指名の見込み・その発注課の過去の落札率と競争の厳しさから出した試算で、落札を保証するものではありません。予定価格は多くが「開札後に公表」のため表示していません。
+  </p>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const NOTICES = /*NOTICES*/[];
+const TODAY = "2026-09-25";
+const HISTORY = [
+  {d:"2025-06-20",t:"通学路交通安全緊急対策事業 四倉・永崎線道路施設整備工事",o:"小名浜支所",m:"指名",me:"辞退",rate:90.1,w:"(有)戸田建設"},
+  {d:"2025-09-02",t:"安心みちまち冠水対策事業 久保・林城線道路排水施設改良工事（鹿島町飯田）",o:"小名浜支所",m:"指名",me:"辞退",rate:99.7,w:"丸長建設工業(株)"},
+  {d:"2025-09-11",t:"災害公営住宅下浅貝団地法面保護工事",o:"建設事業課",m:"一般",me:"入札 13,301.5千円（落札者と11.9千円差・30社超が応札）",rate:89.3,w:"(株)上総",bid:true},
+  {d:"2025-10-01",t:"花木下地区（団体営）治山施設工事",o:"農林土木課",m:"一般",me:"申請後に辞退",rate:89.3,w:"(株)はる"},
+  {d:"2025-10-07",t:"田中排水路整備工事",o:"小名浜支所",m:"指名",me:"辞退",rate:98.8,w:"(株)古川工務店"},
+  {d:"2026-05-27",t:"安竜地区臨時道路改修工事（側溝）",o:"小名浜支所",m:"指名",me:"辞退",rate:89.5,w:"(株)丸若工業"},
+  {d:"2026-05-28",t:"通学路交通安全緊急対策事業 四倉・永崎線道路施設整備工事",o:"小名浜支所",m:"指名",me:"辞退",rate:95.9,w:"(有)戸田建設"},
+  {d:"2026-06-30",t:"田中排水路整備工事",o:"小名浜支所",m:"指名",me:"辞退",rate:95.8,w:"丸和商事(株)"},
+  {d:"2026-07-27",t:"鹿島台団地9号線道路改修工事（局改）（鹿島町米田）",o:"小名浜支所",m:"指名",me:"辞退",rate:98.0,w:"丸長建設工業(株)"},
+  {d:"2026-09-09",t:"永崎保育所給水設備改修工事",o:"住宅営繕課",m:"指名",me:"辞退",rate:null,w:"落札者なし（全社辞退）→ 再公告中"}
+];
+const OFFICES = /*OFFICES*/[];
+const RIVALS = [
+  ["(株)箱建エンジニアリング",7,0,0,true],
+  ["(有)戸田建設",3,3,2],["丸長建設工業(株)",2,2,2],["(株)古川工務店",4,4,1],["丸和商事(株)",3,3,1],["(株)丸若工業",4,1,1],
+  ["鵜沼建設(株)",3,3,0],["西屋建設(株)",3,3,0],["大東工業(株)",2,2,0],["(有)日進興起",4,1,0],["田渕設備(株)",5,0,0],["(有)田口土建",5,0,0]
+];
+
+const $ = id => document.getElementById(id);
+const md = s => { if(!s) return "—"; const [y,m,d]=s.split("-").map(Number); return `${m}/${d}`; };
+const wd = s => s ? "日月火水木金土"[new Date(s+"T00:00:00").getDay()] : "";
+const days = s => s ? Math.round((new Date(s+"T00:00:00")-new Date(TODAY+"T00:00:00"))/86400000) : null;
+const ST = {
+  shimei:{label:"指名の見込み",cls:"mark"}, missed:{label:"資格あり・申請期限切れ",cls:"due"}, ok:{label:"参加できる",cls:"ok"},
+  check:{label:"要確認",cls:"due"}, closed:{label:"受付終了",cls:"gray"}, ng:{label:"参加資格なし",cls:"ng"}, zuii:{label:"随意契約",cls:"gray"}
+};
+const MINE = ["ok","shimei","missed","check","closed"];
+let filter="mine", sort="score", selected=null;
+const state={};
+
+function scoreStyle(s){
+  if(s==null) return "background:var(--surface-2);color:var(--ink-3)";
+  if(s>=70) return "background:var(--accent);color:var(--surface)";
+  if(s>=50) return "background:var(--accent-soft);color:var(--accent)";
+  return "background:var(--surface-2);color:var(--ink-2)";
+}
+function kpis(){
+  const n=s=>NOTICES.filter(x=>x.status===s).length;
+  const hi=NOTICES.filter(x=>x.status==="shimei"&&x.score>=70).length;
+  $("kpis").innerHTML=`
+    <div class="kpi"><div class="label">今年度の公告（受付中を含む）</div><div class="value num">${NOTICES.length}<small>件</small></div><div class="sub">いわき市・水道局の建設工事</div></div>
+    <div class="kpi hl"><div class="label">指名が見込まれる案件</div><div class="value num">${hi}<small>件</small></div><div class="sub">指名競争で登録業種が合う案件は計${n("shimei")}件</div></div>
+    <div class="kpi warn"><div class="label">資格があったのに申請期限切れ</div><div class="value num">${n("missed")}<small>件</small></div><div class="sub">水道局の一般競争（水道施設 A又はB）など</div></div>
+    <div class="kpi"><div class="label">参加資格なし</div><div class="value num">${n("ng")}<small>件</small></div><div class="sub">等級（土木C）不足・業種の登録なしなど</div></div>`;
+}
+function items(){
+  let a=NOTICES.filter(x=>filter==="all"||MINE.includes(x.status));
+  const rank=x=>x.score??-1;
+  a.sort((p,q)=> sort==="score" ? (rank(q)-rank(p)) || (p.kaisatsu>q.kaisatsu?1:-1) : (p.kaisatsu>q.kaisatsu?1:-1));
+  return a;
+}
+function renderList(){
+  const a=items();
+  if(!selected || !a.find(x=>x.no===selected)) selected=a[0]?.no;
+  $("list").innerHTML=a.map(x=>{
+    const s=ST[x.status]; const st=state[x.no];
+    const dl = x.status==="ok"||x.status==="shimei" ? days(x.teishutsu) : null;
+    return `<button class="row ${["ng","zuii","closed"].includes(x.status)?"dim":""} ${st==="skip"?"skip":""}" data-no="${x.no}" aria-current="${x.no===selected}">
+      <div class="score" style="${scoreStyle(x.score)}">${x.score ?? "—"}</div>
+      <div><div class="title">${x.title}</div>
+        <div class="meta"><span>${x.issuer.replace(/\s+/," ")}</span><span>${x.shu}</span><span>${x.hoshiki}</span></div></div>
+      <div class="right">
+        <span class="pill ${s.cls}">${s.label}</span>
+        ${st==="watch"?'<span class="pill mark">検討中</span>':""}
+        <span>開札 ${md(x.kaisatsu)}(${wd(x.kaisatsu)})</span>
+        ${dl!=null&&dl>=0&&dl<=7?`<span class="pill due">入札書 あと${dl}日</span>`:""}
+      </div></button>`;
+  }).join("");
+  $("list").querySelectorAll(".row").forEach(b=>b.onclick=()=>{selected=b.dataset.no;renderList();renderDetail();});
+}
+function renderDetail(){
+  const x=NOTICES.find(n=>n.no===selected); if(!x){$("detail").innerHTML="";return;}
+  const st=state[x.no]; const o=x.ostat;
+  const chk=x.checks.map(([k,v,ok])=>`<li class="${ok===true?"ok":ok===false?"ng":"na"}"><span class="ic">${ok===true?"✓":ok===false?"✕":"・"}</span><span>${k}</span><span class="note">${v}</span></li>`).join("");
+  $("detail").innerHTML=`
+    <div class="issuer">${x.issuer} ／ 契約番号 ${x.no}</div>
+    <h2>${x.title}</h2>
+    <dl class="facts">
+      <dt>工種</dt><dd>${x.shu}</dd>
+      <dt>入札方式</dt><dd>${x.hoshiki}</dd>
+      <dt>場所</dt><dd>${x.place}</dd>
+      ${x.gaiyo?`<dt>概要</dt><dd>${x.gaiyo.replace(/\s*\|\s*/g,"／")}</dd>`:""}
+      <dt>予定価格</dt><dd>開札後に公表</dd>
+      <dt>公告日</dt><dd>${md(x.koukoku)}（${wd(x.koukoku)}）</dd>
+      ${x.hoshiki==="一般競争入札"?`<dt>参加申請</dt><dd>${x.shinsei?md(x.shinsei)+"（"+wd(x.shinsei)+"）まで":x.shinsei_raw}</dd>`:""}
+      <dt>入札書提出</dt><dd>${x.teishutsu?md(x.teishutsu)+"（"+wd(x.teishutsu)+"）まで":x.teishutsu_raw}</dd>
+      <dt>開札日</dt><dd>${md(x.kaisatsu)}（${wd(x.kaisatsu)}）</dd>
+    </dl>
+    <div class="sec"><h3>参加資格のチェック（箱建の登録内容と照合）</h3><ul class="checks">${chk}</ul>
+      ${x.reason?`<p class="hint">判定：${x.reason}</p>`:""}</div>
+    ${o?`<div class="sec"><h3>${x.office}の過去1年の入札結果</h3>
+      <div class="stats">
+        <div class="stat"><div class="l">件数</div><div class="v num">${o.n}件</div></div>
+        <div class="stat"><div class="l">平均落札率</div><div class="v num">${o.avg}%</div></div>
+        <div class="stat"><div class="l">95%以上の割合</div><div class="v num">${o.hi}%</div></div>
+      </div><p class="hint">実際に入札した社数は平均 約${o.act}社（OCRによる概数）</p></div>`:""}
+    ${x.note?`<div class="sec"><h3>コメント</h3><div class="ai">${x.note}</div></div>`:""}
+    <div class="actions">
+      ${MINE.includes(x.status)&&x.status!=="closed"?`<button class="btn primary" id="b-watch" ${st==="watch"?"disabled":""}>${st==="watch"?"検討リストに追加済み":"検討リストに追加"}</button>
+      <button class="btn" id="b-skip">${st==="skip"?"見送りを取り消す":"見送る"}</button>`:""}
+    </div>
+    <p class="hint">公告文・設計図書は「いわき市 入札情報サービス」（https://iwaki.efftis.jp/PPI/Public/）で確認できます。</p>`;
+  const w=$("b-watch"), s=$("b-skip");
+  if(w) w.onclick=()=>{state[x.no]="watch";toast("検討リストに追加しました");renderList();renderDetail();};
+  if(s) s.onclick=()=>{ if(state[x.no]==="skip"){delete state[x.no];toast("見送りを取り消しました");} else {state[x.no]="skip";toast("見送りました。理由は分析に使います");} renderList();renderDetail();};
+}
+let tt; function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200);}
+document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));renderList();renderDetail();});
+document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{sort=b.dataset.s;document.querySelectorAll("[data-s]").forEach(x=>x.setAttribute("aria-pressed",x===b));renderList();renderDetail();});
+
+const views=["today","analysis","notify","settings"];
+function show(v){views.forEach(x=>{$("view-"+x).hidden=x!==v;$("tab-"+x).setAttribute("aria-selected",x===v);});}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>show(t.dataset.view));
+if(views.includes(location.hash.slice(1))) show(location.hash.slice(1));
+
+$("history").innerHTML=`<thead><tr><th>入札日</th><th>工事名</th><th>発注</th><th>方式</th><th>箱建</th><th style="text-align:right">落札率</th><th>落札者</th></tr></thead><tbody>`+
+  HISTORY.map(h=>`<tr class="${h.bid?"me":""}"><td class="num" style="white-space:nowrap">${h.d.replace(/-/g,"/")}</td><td>${h.t}</td><td>${h.o}</td><td>${h.m}</td><td>${h.me}</td><td class="n">${h.rate!=null?h.rate.toFixed(1)+"%":"—"}</td><td>${h.w}</td></tr>`).join("")+"</tbody>";
+$("bars").innerHTML=OFFICES.map(o=>`<div class="barrow ${o.g==="小名浜支所"?"me":""}"><span class="lab">${o.g}</span><div class="bar"><i style="width:${o.hi}%"></i></div><span class="n">${o.hi}%</span><span class="m">${o.n}件 ${o.avg}%</span></div>`).join("");
+$("rivals").innerHTML=`<thead><tr><th>会社</th><th style="text-align:right">指名</th><th style="text-align:right">入札</th><th style="text-align:right">落札</th></tr></thead><tbody>`+
+  RIVALS.map(r=>`<tr class="${r[4]?"me":""}"><td>${r[0]}</td><td class="n">${r[1]}</td><td class="n">${r[2]}</td><td class="n">${r[3]}</td></tr>`).join("")+"</tbody>";
+
+const trades=["土木一式","とび・土工・コンクリート","石","管","鋼構造物","舗装","しゅんせつ","塗装","水道施設"];
+$("trades").innerHTML=trades.map((t,i)=>`<label for="t${i}"><input type="checkbox" id="t${i}" checked> ${t}</label>`).join("");
+$("settings-form").addEventListener("submit",e=>{e.preventDefault();toast("条件を保存しました（画面の見本のため、実際には保存されません）");});
+
+kpis(); renderList(); renderDetail();
+</script>
