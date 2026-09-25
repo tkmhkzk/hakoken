@@ -1,0 +1,490 @@
+<title>入札アンテナ いわき</title>
+<meta name="description" content="地場の建設会社向け 入札情報の自動収集・選別サービスの画面モック">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --ground:#f3f5f2;
+  --surface:#ffffff;
+  --surface-2:#e9eee9;
+  --ink:#1c2a30;
+  --ink-2:#4b5b61;
+  --ink-3:#7a888c;
+  --line:#d5ddd8;
+  --accent:#0f6b63;
+  --accent-soft:#dcefeb;
+  --warn:#b8660b;
+  --warn-soft:#fbecd6;
+  --bad:#a23a32;
+  --bad-soft:#f6e0dd;
+  --good:#2e7d4a;
+  --good-soft:#dff0e3;
+  --shadow:0 1px 2px rgba(20,40,40,.06),0 4px 16px rgba(20,40,40,.06);
+  --f-body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-head:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#121a1c;--surface:#1a2427;--surface-2:#223034;
+    --ink:#e4ecea;--ink-2:#aebcbb;--ink-3:#80908f;--line:#2e3d41;
+    --accent:#4fbfb2;--accent-soft:#173b38;
+    --warn:#e3a14f;--warn-soft:#3a2c17;--bad:#e27c72;--bad-soft:#3b2220;
+    --good:#6cc38a;--good-soft:#1c3625;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#121a1c;--surface:#1a2427;--surface-2:#223034;
+  --ink:#e4ecea;--ink-2:#aebcbb;--ink-3:#80908f;--line:#2e3d41;
+  --accent:#4fbfb2;--accent-soft:#173b38;
+  --warn:#e3a14f;--warn-soft:#3a2c17;--bad:#e27c72;--bad-soft:#3b2220;
+  --good:#6cc38a;--good-soft:#1c3625;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.6;padding-inline:16px;padding-block:0 40px}
+.wrap{max-width:1200px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--ground);padding-block:14px 0;border-bottom:1px solid var(--line)}
+.brand{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;justify-content:space-between}
+.brand h1{font-size:20px;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.brand h1 svg{width:22px;height:22px;color:var(--accent)}
+.brand .who{color:var(--ink-2);font-size:13px}
+.mockflag{display:inline-block;font-size:11px;letter-spacing:.08em;padding:1px 8px;border-radius:3px;background:var(--warn-soft);color:var(--warn);font-weight:700}
+.tabs{display:flex;gap:4px;margin-top:10px;overflow-x:auto}
+.tab{border:0;background:none;color:var(--ink-2);padding:8px 14px;border-bottom:3px solid transparent;white-space:nowrap;font-weight:700}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+/* summary */
+.updated{color:var(--ink-3);font-size:12px;margin:18px 0 8px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.kpi .label{font-size:12px;color:var(--ink-2);letter-spacing:.04em}
+.kpi .value{font-size:26px;line-height:1.2;margin-top:2px}
+.kpi .value small{font-size:13px;color:var(--ink-3);margin-left:4px;font-family:var(--f-body)}
+.kpi.hl{border-color:var(--accent);background:var(--accent-soft)}
+@media (max-width:720px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 10px;align-items:center}
+.filters .lbl{font-size:12px;color:var(--ink-3);margin-right:4px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:3px 12px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+
+/* list + detail */
+.split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px;color:inherit}
+.row:hover{border-color:var(--ink-3)}
+.row[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.row.out{opacity:.62}
+.row.dismissed{opacity:.4}
+.score{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-num);font-size:18px;position:relative}
+.score span{position:absolute;bottom:-2px;font-size:9px;font-family:var(--f-body);color:var(--ink-3);letter-spacing:.05em}
+.row .title{font-weight:700;font-size:14.5px;line-height:1.45}
+.row .meta{font-size:12px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:2px}
+.row .right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:3px;white-space:nowrap}
+.pill.ok{background:var(--good-soft);color:var(--good)}
+.pill.ng{background:var(--bad-soft);color:var(--bad)}
+.pill.due{background:var(--warn-soft);color:var(--warn)}
+.pill.mark{background:var(--accent-soft);color:var(--accent)}
+@media (max-width:520px){.row{grid-template-columns:48px minmax(0,1fr)}.row .right{grid-column:2;flex-direction:row;flex-wrap:wrap;align-items:center}.score{width:48px;height:48px;font-size:15px}}
+
+.detail{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;position:sticky;top:120px;box-shadow:var(--shadow)}
+@media (max-width:900px){.detail{position:static}}
+.detail .issuer{font-size:12px;color:var(--ink-2)}
+.detail h2{font-size:18px;margin:2px 0 10px;line-height:1.45}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:0}
+.facts dt{color:var(--ink-3)}
+.facts dd{margin:0}
+.sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.sec h3{font-size:13px;letter-spacing:.06em;color:var(--ink-2);margin-bottom:8px}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:13px}
+.checks li{display:grid;grid-template-columns:20px 1fr auto;gap:6px;align-items:baseline}
+.checks .ic{font-weight:700}
+.checks .ok .ic{color:var(--good)}
+.checks .ng .ic{color:var(--bad)}
+.checks .note{color:var(--ink-3);font-size:12px}
+.stats3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--surface-2);border-radius:5px;padding:8px 10px}
+.stat .l{font-size:11px;color:var(--ink-2)}
+.stat .v{font-size:18px}
+.ai{background:var(--accent-soft);border-radius:6px;padding:10px 12px;font-size:13px;line-height:1.7}
+.ai b{color:var(--accent)}
+.rivals{width:100%;border-collapse:collapse;font-size:12.5px}
+.rivals th,.rivals td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
+.rivals th{color:var(--ink-3);font-weight:400}
+.rivals td.n{text-align:right;font-family:var(--f-num)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 16px;border-radius:5px;font-weight:700}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn:disabled{opacity:.5;cursor:default}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:8px 18px;border-radius:5px;font-size:13px}
+
+/* analysis */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;margin-top:18px}
+.panel h2{font-size:16px;margin-bottom:4px}
+.panel .sub{color:var(--ink-2);font-size:12.5px;margin:0 0 12px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--ink-3);font-size:11px;font-family:var(--f-num)}
+.scroll{overflow-x:auto}
+.bar{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+
+/* notify */
+.notify{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:28px;align-items:start;margin-top:18px}
+@media (max-width:760px){.notify{grid-template-columns:1fr}}
+.phone{background:#7494a8;border-radius:26px;padding:12px;border:6px solid #1f2a30;max-width:320px;width:100%;margin:0 auto}
+.phone .bar-top{color:#fff;font-size:12px;text-align:center;padding:4px 0 10px;font-weight:700}
+.msg{background:#fff;color:#1c2a30;border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6;margin-bottom:8px}
+.msg .t{font-weight:700;margin-bottom:4px}
+.msg .it{border-top:1px solid #e3e8e6;padding-top:6px;margin-top:6px}
+.msg .sc{font-family:var(--f-num);color:#0f6b63;font-weight:700}
+.msg .link{color:#0f6b63;text-decoration:underline}
+.explain ol{margin:8px 0 0;padding-left:1.3em;display:grid;gap:8px;max-width:60ch}
+
+/* settings */
+.form{display:grid;gap:18px;max-width:760px}
+.field label,.field .fl{display:block;font-weight:700;font-size:13px;margin-bottom:6px}
+.field .hint{font-size:12px;color:var(--ink-3);margin-top:4px}
+.checks-grid{display:flex;flex-wrap:wrap;gap:6px 14px}
+.checks-grid label{font-weight:400;display:flex;gap:5px;align-items:center;margin:0}
+select,input[type=number],input[type=text]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:6px 10px;max-width:100%}
+.inline{display:flex;flex-wrap:wrap;gap:10px}
+
+.foot{margin-top:28px;font-size:12px;color:var(--ink-3);max-width:80ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20v-8"/><path d="M8.5 8.5a5 5 0 0 1 7 0"/><path d="M5.6 5.6a9 9 0 0 1 12.8 0"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg>
+        入札アンテナ いわき
+      </h1>
+      <div class="who">株式会社箱建エンジニアリング 様 ／ <span class="mockflag">画面モック・サンプルデータ</span></div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="画面切り替え">
+      <button class="tab" role="tab" id="tab-today" aria-selected="true" data-view="today">今日の案件</button>
+      <button class="tab" role="tab" id="tab-analysis" aria-selected="false" data-view="analysis">入札結果の分析</button>
+      <button class="tab" role="tab" id="tab-notify" aria-selected="false" data-view="notify">通知イメージ</button>
+      <button class="tab" role="tab" id="tab-settings" aria-selected="false" data-view="settings">自社の条件</button>
+    </nav>
+  </header>
+
+  <!-- ===== 今日の案件 ===== -->
+  <main id="view-today">
+    <p class="updated">2026年9月25日（金）7:00 更新 ／ 収集元：いわき市電子入札・福島県・東北地方整備局</p>
+    <div class="kpis">
+      <div class="kpi"><div class="label">新着の公告</div><div class="value num">47<small>件</small></div></div>
+      <div class="kpi hl"><div class="label">参加できる案件</div><div class="value num" id="k-ok">6<small>件</small></div></div>
+      <div class="kpi"><div class="label">取れそう度 70以上</div><div class="value num" id="k-hi">3<small>件</small></div></div>
+      <div class="kpi"><div class="label">締切まで3日以内</div><div class="value num">1<small>件</small></div></div>
+    </div>
+
+    <div class="filters" role="group" aria-label="絞り込み">
+      <span class="lbl">表示</span>
+      <button class="chip" aria-pressed="true" data-f="ok">参加できる案件</button>
+      <button class="chip" aria-pressed="false" data-f="all">すべて</button>
+      <span class="lbl" style="margin-left:10px">並び順</span>
+      <button class="chip" aria-pressed="true" data-s="score">取れそう度</button>
+      <button class="chip" aria-pressed="false" data-s="due">締切が近い順</button>
+      <span class="lbl" style="margin-left:auto">丸の数字＝取れそう度（0〜100）</span>
+    </div>
+
+    <div class="split">
+      <div class="list" id="list"></div>
+      <aside class="detail" id="detail" aria-live="polite"></aside>
+    </div>
+  </main>
+
+  <!-- ===== 分析 ===== -->
+  <section id="view-analysis" hidden>
+    <div class="panel">
+      <h2>いわき市発注 土木一式（B等級）の落札率の推移</h2>
+      <p class="sub">過去12か月の開札結果から集計。落札率＝落札額÷予定価格。点線は最低制限価格の水準（目安）。</p>
+      <div class="scroll"><svg class="chart" id="chart" viewBox="0 0 640 240" role="img" aria-label="落札率の月別推移グラフ"></svg></div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h2>よく競合する会社</h2>
+        <p class="sub">同じ案件に応札した回数（過去12か月・土木／舗装）</p>
+        <table class="rivals" id="rivals"></table>
+      </div>
+      <div class="panel">
+        <h2>自社の入札成績（サンプル）</h2>
+        <p class="sub">過去12か月</p>
+        <div class="stats3">
+          <div class="stat"><div class="l">応札</div><div class="v num">24件</div></div>
+          <div class="stat"><div class="l">落札</div><div class="v num">7件</div></div>
+          <div class="stat"><div class="l">勝率</div><div class="v num">29%</div></div>
+        </div>
+        <div class="sec" style="border:0;padding-top:4px">
+          <h3>工種別の勝率</h3>
+          <div id="winbars" style="display:grid;gap:8px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 通知 ===== -->
+  <section id="view-notify" hidden>
+    <div class="notify">
+      <div class="phone" aria-label="スマートフォン通知の見本">
+        <div class="bar-top">入札アンテナ</div>
+        <div class="msg">
+          <div class="t">おはようございます。本日の注目案件は3件です（9/25）</div>
+          <div class="it"><span class="sc">82</span>　市道鹿島・走熊線 側溝改良工事<br>いわき市／予定価格 1,845万円／開札 10/8</div>
+          <div class="it"><span class="sc">76</span>　平地区 配水管布設替工事（第2工区）<br>いわき市／予定価格 2,610万円／開札 10/2</div>
+          <div class="it"><span class="sc">71</span>　県道小名浜四倉線 舗装補修工事<br>福島県／予定価格 3,280万円／開札 10/14</div>
+          <div class="it">ほか参加できる案件 3件 <span class="link">一覧を開く</span></div>
+        </div>
+        <div class="msg">
+          <div class="t">締切が近い案件があります</div>
+          平地区 配水管布設替工事（第2工区）は <b>9/28（月）17:00</b> が申請締切です。
+        </div>
+      </div>
+      <div class="explain">
+        <h2 style="font-size:17px">毎朝7時、社長のスマホに届く</h2>
+        <ol>
+          <li>夜のうちに、いわき市・福島県・国の入札公告を自動で集めます。</li>
+          <li>許可業種、市の格付け（等級）、地域の条件、経審の点数で、<b>参加資格がある案件だけ</b>に絞ります。</li>
+          <li>過去の開札結果から、落札率・競合の顔ぶれ・応札する社数を見て「取れそう度」を付けます。</li>
+          <li>上位の案件だけを LINE かメールで送ります。詳しく見たいときは一覧を開きます。</li>
+        </ol>
+        <p class="foot" style="margin-top:14px">見本では LINE 風の画面にしています。実際の通知先は、利用する会社に合わせて選べる想定です。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 設定 ===== -->
+  <section id="view-settings" hidden>
+    <div class="panel">
+      <h2>自社の条件</h2>
+      <p class="sub">ここで登録した条件をもとに、参加資格がある案件だけを選びます。数値はサンプルです。</p>
+      <form class="form" id="settings-form">
+        <div class="field">
+          <span class="fl">建設業許可の業種</span>
+          <div class="checks-grid" id="trades"></div>
+        </div>
+        <div class="field">
+          <span class="fl">いわき市の格付け（等級）</span>
+          <div class="inline">
+            <label for="g-doboku" style="font-weight:400">土木一式 <select id="g-doboku"><option>A</option><option selected>B</option><option>C</option></select></label>
+            <label for="g-hoso" style="font-weight:400">舗装 <select id="g-hoso"><option selected>A</option><option>B</option></select></label>
+            <label for="g-kan" style="font-weight:400">管 <select id="g-kan"><option>A</option><option selected>B</option></select></label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-score">経審の総合評定値（P点）</label>
+          <input type="number" id="p-score" value="742" min="0" max="2500">
+        </div>
+        <div class="field">
+          <label for="area">対象にする発注者</label>
+          <input type="text" id="area" value="いわき市、福島県（いわき建設事務所）、東北地方整備局 磐城国道事務所" style="width:100%">
+          <div class="hint">地域の条件（市内に本店があること等）は、本店所在地「いわき市鹿島町」から自動で判定します。</div>
+        </div>
+        <div class="field">
+          <label for="price">予定価格の範囲</label>
+          <div class="inline"><input type="text" id="price" value="500万円 〜 1億円"></div>
+        </div>
+        <div class="field">
+          <label for="ch">通知の送り先</label>
+          <select id="ch"><option>LINE（社長・積算担当）</option><option>メール</option><option>両方</option></select>
+        </div>
+        <div><button class="btn primary" type="submit">条件を保存</button></div>
+      </form>
+    </div>
+  </section>
+
+  <p class="foot">※ これは画面の見本（モック）です。表示している案件名・金額・競合の会社名・入札成績などは、すべて説明用に作った架空のデータで、実際の公告や入札結果ではありません。</p>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const TODAY = new Date(2026, 8, 25);
+const cases = [
+  {id:1, issuer:"いわき市", title:"市道鹿島・走熊線 側溝改良工事", trade:"土木一式", grade:"B", price:18450000, apply:"2026-09-30", open:"2026-10-08", ok:true, score:82, rate:94.1, bidders:4, place:"いわき市鹿島町",
+   checks:[["許可業種","土木 ○"],["市の格付け","B等級 対象"],["地域の条件","市内本店 ○"],["経審 P点","要件なし"]],
+   rivals:[["A建設","6回","2回"],["B土木","4回","1回"],["C工業","3回","0回"]],
+   ai:"本社から近い現場で、移動や重機の手配がしやすい案件です。直近の同規模案件は<b>応札4社・落札率94%前後</b>で推移しています。"},
+  {id:2, issuer:"いわき市（水道局）", title:"平地区 配水管布設替工事（第2工区）", trade:"水道施設", grade:"B", price:26100000, apply:"2026-09-28", open:"2026-10-02", ok:true, score:76, rate:92.8, bidders:5, place:"いわき市平",
+   checks:[["許可業種","水道施設 ○"],["市の格付け","B等級 対象"],["地域の条件","市内本店 ○"],["経審 P点","要件なし"]],
+   rivals:[["D設備","5回","2回"],["A建設","3回","1回"]],
+   ai:"第1工区は5社応札でした。<b>申請締切が9/28（月）</b>なので、今日中に参加を決める必要があります。"},
+  {id:3, issuer:"福島県 いわき建設事務所", title:"県道小名浜四倉線 舗装補修工事", trade:"舗装", grade:"—", price:32800000, apply:"2026-10-06", open:"2026-10-14", ok:true, score:71, rate:91.5, bidders:6, place:"いわき市小名浜",
+   checks:[["許可業種","舗装 ○"],["県の格付け","対象"],["地域の条件","いわき管内 ○"],["経審 P点","700以上 ○（742）"]],
+   rivals:[["E道路","7回","3回"],["B土木","2回","0回"]],
+   ai:"県発注の舗装はE道路の落札が多い傾向です。価格勝負になりやすいため、<b>積算の精度が勝敗を分けます</b>。"},
+  {id:4, issuer:"いわき市", title:"下水道 マンホール蓋更新工事（その3）", trade:"管", grade:"B", price:9800000, apply:"2026-10-02", open:"2026-10-09", ok:true, score:63, rate:95.2, bidders:3, place:"いわき市内全域",
+   checks:[["許可業種","管 ○"],["市の格付け","B等級 対象"],["地域の条件","市内本店 ○"],["経審 P点","要件なし"]],
+   rivals:[["D設備","4回","3回"]],
+   ai:"D設備が継続して落札している種別です。応札社数は少ないものの、<b>勝率は低め</b>の見込みです。"},
+  {id:5, issuer:"いわき市", title:"夏井川水系 河道しゅんせつ工事", trade:"しゅんせつ", grade:"—", price:41200000, apply:"2026-10-09", open:"2026-10-16", ok:true, score:58, rate:90.3, bidders:7, place:"いわき市平",
+   checks:[["許可業種","しゅんせつ ○"],["市の格付け","等級なし"],["地域の条件","市内本店 ○"],["経審 P点","要件なし"]],
+   rivals:[["F建設","2回","1回"],["A建設","2回","0回"]],
+   ai:"応札社数が多くなりやすい工種です。<b>重機の空き状況</b>を確認したうえで判断してください。"},
+  {id:6, issuer:"いわき市", title:"市立小学校 体育館外壁塗装工事", trade:"塗装", grade:"—", price:7600000, apply:"2026-10-05", open:"2026-10-13", ok:true, score:44, rate:96.0, bidders:5, place:"いわき市内郷",
+   checks:[["許可業種","塗装 ○"],["市の格付け","等級なし"],["地域の条件","市内本店 ○"],["経審 P点","要件なし"]],
+   rivals:[["G塗装","5回","3回"]],
+   ai:"塗装を専門とする会社との競合になります。<b>自社での実績が少ない</b>ため、優先度は低めです。"},
+  {id:7, issuer:"東北地方整備局 磐城国道事務所", title:"国道6号 いわき管内 道路維持工事", trade:"一般土木", grade:"C", price:128000000, apply:"2026-10-01", open:"2026-10-20", ok:false, score:null, place:"いわき市",
+   checks:[["許可業種","土木 ○"],["国の等級","C等級 ✕（未取得）"],["地域の条件","○"],["経審 P点","要件未確認"]],
+   ai:"国の競争参加資格（一般土木 C等級）がないため参加できません。資格を取れば、同じ種類の案件は<b>年に3〜4件</b>出ています。"},
+  {id:8, issuer:"福島県 富岡土木事務所", title:"町道 災害復旧工事（第5号）", trade:"土木一式", grade:"—", price:22300000, apply:"2026-10-03", open:"2026-10-10", ok:false, score:null, place:"双葉郡富岡町",
+   checks:[["許可業種","土木 ○"],["県の格付け","対象"],["地域の条件","管内に本店 ✕"],["経審 P点","○"]],
+   ai:"地域の条件（管内に本店）を満たさないため参加できません。"}
+];
+
+const yen = n => (n/10000).toLocaleString("ja-JP",{maximumFractionDigits:0})+"万円";
+const md = s => { const d=new Date(s); return (d.getMonth()+1)+"/"+d.getDate(); };
+const daysLeft = s => Math.round((new Date(s)-TODAY)/86400000);
+const wd = s => "日月火水木金土"[new Date(s).getDay()];
+
+let filter="ok", sort="score", selected=1;
+const state = {}; // id -> "watch" | "skip"
+
+function scoreStyle(s){
+  if(s==null) return "background:var(--surface-2);color:var(--ink-3)";
+  if(s>=70) return "background:var(--accent);color:var(--surface)";
+  if(s>=55) return "background:var(--accent-soft);color:var(--accent)";
+  return "background:var(--surface-2);color:var(--ink-2)";
+}
+
+function renderList(){
+  let items = cases.filter(c => filter==="all" || c.ok);
+  items.sort((a,b)=> sort==="score" ? (b.score??-1)-(a.score??-1) : new Date(a.apply)-new Date(b.apply));
+  const el = document.getElementById("list");
+  el.innerHTML = items.map(c=>{
+    const dl = daysLeft(c.apply);
+    const st = state[c.id];
+    return `<button class="row ${c.ok?"":"out"} ${st==="skip"?"dismissed":""}" data-id="${c.id}" aria-current="${c.id===selected}">
+      <div class="score" style="${scoreStyle(c.score)}">${c.score ?? "—"}</div>
+      <div>
+        <div class="title">${c.title}</div>
+        <div class="meta"><span>${c.issuer}</span><span>${c.trade}</span><span class="num">${yen(c.price)}</span></div>
+      </div>
+      <div class="right">
+        ${c.ok?'<span class="pill ok">参加できる</span>':'<span class="pill ng">参加不可</span>'}
+        ${st==="watch"?'<span class="pill mark">検討中</span>':""}
+        ${st==="skip"?'<span class="pill">見送り</span>':""}
+        <span class="${dl<=3?"pill due":""}">申請 ${md(c.apply)}(${wd(c.apply)})${dl<=3?` あと${dl}日`:""}</span>
+      </div>
+    </button>`;
+  }).join("");
+  el.querySelectorAll(".row").forEach(b=>b.addEventListener("click",()=>{selected=+b.dataset.id;renderList();renderDetail();}));
+}
+
+function renderDetail(){
+  const c = cases.find(x=>x.id===selected);
+  const el = document.getElementById("detail");
+  const st = state[c.id];
+  el.innerHTML = `
+    <div class="issuer">${c.issuer}</div>
+    <h2>${c.title}</h2>
+    <dl class="facts">
+      <dt>工種</dt><dd>${c.trade}${c.grade!=="—"?`（${c.grade}等級）`:""}</dd>
+      <dt>予定価格</dt><dd class="num">${c.price.toLocaleString("ja-JP")} 円</dd>
+      <dt>施工場所</dt><dd>${c.place}</dd>
+      <dt>申請締切</dt><dd>${md(c.apply)}（${wd(c.apply)}）17:00</dd>
+      <dt>開札日</dt><dd>${md(c.open)}（${wd(c.open)}）</dd>
+    </dl>
+    <div class="sec">
+      <h3>参加資格のチェック</h3>
+      <ul class="checks">${c.checks.map(([k,v])=>{const ng=v.includes("✕");return `<li class="${ng?"ng":"ok"}"><span class="ic">${ng?"✕":"✓"}</span><span>${k}</span><span class="note">${v.replace(/[○✕]/g,"").trim()}</span></li>`}).join("")}</ul>
+    </div>
+    ${c.ok?`
+    <div class="sec">
+      <h3>過去の似た案件（12か月）</h3>
+      <div class="stats3">
+        <div class="stat"><div class="l">取れそう度</div><div class="v num">${c.score}</div></div>
+        <div class="stat"><div class="l">平均落札率</div><div class="v num">${c.rate}%</div></div>
+        <div class="stat"><div class="l">応札する社数</div><div class="v num">${c.bidders}社</div></div>
+      </div>
+    </div>
+    <div class="sec">
+      <h3>競合しそうな会社</h3>
+      <table class="rivals"><thead><tr><th>会社</th><th style="text-align:right">応札</th><th style="text-align:right">落札</th></tr></thead>
+      <tbody>${c.rivals.map(r=>`<tr><td>${r[0]}</td><td class="n">${r[1]}</td><td class="n">${r[2]}</td></tr>`).join("")}</tbody></table>
+    </div>`:""}
+    <div class="sec">
+      <h3>AIのコメント</h3>
+      <div class="ai">${c.ai}</div>
+    </div>
+    <div class="actions">
+      ${c.ok?`<button class="btn primary" id="b-watch" ${st==="watch"?"disabled":""}>${st==="watch"?"検討リストに追加済み":"検討リストに追加"}</button>
+      <button class="btn" id="b-skip">${st==="skip"?"見送りを取り消す":"見送る"}</button>`
+      :`<button class="btn" id="b-howto">資格取得の手順を見る</button>`}
+    </div>`;
+  const w=document.getElementById("b-watch"), s=document.getElementById("b-skip"), h=document.getElementById("b-howto");
+  if(w) w.onclick=()=>{state[c.id]="watch";toast("検討リストに追加しました（積算担当に通知）");renderList();renderDetail();};
+  if(s) s.onclick=()=>{if(state[c.id]==="skip"){delete state[c.id];toast("見送りを取り消しました");}else{state[c.id]="skip";toast("見送りました。理由は分析に使います");}renderList();renderDetail();};
+  if(h) h.onclick=()=>toast("モックのため、この画面はまだありません");
+}
+
+let tt;
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200);}
+
+document.querySelectorAll("[data-f]").forEach(b=>b.addEventListener("click",()=>{
+  filter=b.dataset.f;document.querySelectorAll("[data-f]").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  if(filter==="ok" && !cases.find(c=>c.id===selected).ok) selected=cases.find(c=>c.ok).id;
+  renderList();renderDetail();}));
+document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>{
+  sort=b.dataset.s;document.querySelectorAll("[data-s]").forEach(x=>x.setAttribute("aria-pressed",x===b));renderList();}));
+
+/* tabs */
+const views=["today","analysis","notify","settings"];
+function show(v){
+  views.forEach(x=>{document.getElementById("view-"+x).hidden = x!==v; document.getElementById("tab-"+x).setAttribute("aria-selected",x===v);});
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>show(t.dataset.view)));
+if(views.includes(location.hash.slice(1))) show(location.hash.slice(1));
+
+/* chart */
+(function(){
+  const months=["10月","11月","12月","1月","2月","3月","4月","5月","6月","7月","8月","9月"];
+  const vals=[93.8,94.2,92.9,93.5,91.8,92.4,94.6,93.9,93.1,92.2,92.7,93.4];
+  const W=640,H=240,L=44,R=14,T=16,B=30, lo=88, hi=98, floor=90.0;
+  const x=i=>L+i*(W-L-R)/(vals.length-1), y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
+  let s="";
+  for(let v=lo; v<=hi; v+=2){ s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}%</text>`; }
+  s+=`<line x1="${L}" x2="${W-R}" y1="${y(floor)}" y2="${y(floor)}" stroke="var(--warn)" stroke-dasharray="4 4" stroke-width="1.5"/><text x="${W-R}" y="${y(floor)-6}" text-anchor="end" style="fill:var(--warn)">最低制限の目安 90%</text>`;
+  const pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(" ");
+  s+=`<polygon points="${x(0)},${y(lo)} ${pts} ${x(vals.length-1)},${y(lo)}" fill="var(--accent)" opacity=".12"/>`;
+  s+=`<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  vals.forEach((v,i)=>{ s+=`<text x="${x(i)}" y="${H-10}" text-anchor="middle">${months[i]}</text>`; });
+  const li=vals.length-1;
+  s+=`<circle cx="${x(li)}" cy="${y(vals[li])}" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/><text x="${x(li)-10}" y="${y(vals[li])-10}" text-anchor="end" style="fill:var(--ink);font-weight:500">${vals[li]}%</text>`;
+  document.getElementById("chart").innerHTML=s;
+})();
+
+document.getElementById("rivals").innerHTML =
+  `<thead><tr><th>会社（仮名）</th><th>主な工種</th><th style="text-align:right">競合回数</th><th style="text-align:right">相手の落札</th></tr></thead><tbody>`+
+  [["A建設","土木","11","4"],["E道路","舗装","9","5"],["B土木","土木","8","2"],["D設備","管・水道","7","4"],["F建設","土木","5","1"]]
+  .map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="n">${r[2]}</td><td class="n">${r[3]}</td></tr>`).join("")+"</tbody>";
+
+document.getElementById("winbars").innerHTML =
+  [["土木一式",38],["水道施設",33],["舗装",20],["管",14]].map(([k,v])=>
+  `<div><div style="display:flex;justify-content:space-between;font-size:12.5px"><span>${k}</span><span class="num">${v}%</span></div><div class="bar"><i style="width:${v}%"></i></div></div>`).join("");
+
+/* settings */
+const trades=["とび・土工","土木","舗装","管","水道施設","鋼構造物","石","塗装","しゅんせつ"];
+document.getElementById("trades").innerHTML = trades.map((t,i)=>`<label for="t${i}"><input type="checkbox" id="t${i}" checked> ${t}</label>`).join("");
+document.getElementById("settings-form").addEventListener("submit",e=>{e.preventDefault();toast("条件を保存しました（モックのため実際には保存されません）");});
+
+renderList();renderDetail();
+</script>
